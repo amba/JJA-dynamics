@@ -171,7 +171,8 @@ main (int argc, char **argv)
   printf("N_x = %d, N_y = %d\n", N_x, N_y);
   for (int i = 0; i < num_steps; ++i) {
     float temp = T_start * ( 1 - (float) i / num_steps);
-    printf("i = %10d, temp = %10g, f = %.13g\n", i, temp, free_energy());
+    if (i % 100 == 0)
+      printf("i = %10d, temp = %10g, f = %.13g\n", i, temp, free_energy());
     run_step(temp);
   }  
   save_to_file("output");
