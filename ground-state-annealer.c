@@ -1,12 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <error.h>
-#include <errno.h>
-#include <assert.h>
-#include <stdint.h>
 #include <math.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #define N_x  100
 #define N_y  100
@@ -16,7 +12,7 @@
 #define PI 3.141592
 
 static const SCALAR_TYPE EPS  = 0.4;
-static const SCALAR_TYPE frustration = 0.25* 2 * PI;
+static SCALAR_TYPE frustration = 0.25* 2 * PI;
 
 
 static SCALAR_TYPE phases[N_x*N_y]; // phi(i,j) = phases(i + N_y * j)
@@ -32,7 +28,7 @@ static SCALAR_TYPE phases[N_x*N_y]; // phi(i,j) = phases(i + N_y * j)
 // static SCALAR_TYPE currents_x[(N_x-1)*N_y];
 // static SCALAR_TYPE *currents_y[N_x*(N_y-1)];
 
-static int random_init() {
+static void random_init() {
     for (int i = 0; i < N_x; ++i) {
       for (int j = 0; j < N_y; ++j) {
         // generate random number in [-pi,pi)
@@ -41,7 +37,7 @@ static int random_init() {
     }
 }
 
-static int run_step(SCALAR_TYPE temp, SCALAR_TYPE temp_scale_factor) {
+static void run_step(SCALAR_TYPE temp) {
   for (int i = 0; i < N_x; ++i) {
     for (int j = 0; j < N_y; ++j) {
       SCALAR_TYPE div_I_super = 0;
@@ -60,9 +56,9 @@ static int run_step(SCALAR_TYPE temp, SCALAR_TYPE temp_scale_factor) {
       }
       phases[i + N_y *j] += EPS * div_I_super;
       if (temp > 0) {
-        float local_temp = temp *(1 + temp_scale_factor * (abs(i - N_x/2) + abs(j - N_y/2)) / ((float) N_x/2+ (float) N_y/2));
+        // float local_temp = temp *(1 + temp_scale_factor * (abs(i - N_x/2) + abs(j - N_y/2)) / ((float) N_x/2+ (float) N_y/2));
         //printf("i=%d, j=%d, local_temp = %g\n",i,j, local_temp);
-        phases[i + N_y * j] += 2*local_temp*((float) rand() / (float) RAND_MAX) - local_temp;
+        phases[i + N_y * j] += 2*temp*((float) rand() / (float) RAND_MAX) - temp;
       }
     }
   }
@@ -84,7 +80,7 @@ static SCALAR_TYPE free_energy() {
   return f;
 }
 
-static int save_to_file(char *basename) {
+static void save_to_file(char *basename) {
   char output_filename[300];
 
 
@@ -140,15 +136,43 @@ static int save_to_file(char *basename) {
 int
 main (int argc, char **argv)
 {
+  // parse command line options
+  int num_steps = 10;
+  float T_start = 1;
+
+  int c;
+  while ((c = getopt(argc, argv, "f:n:t:")) != -1)
+    switch (c) {
+    case 'f':
+      frustration = 2 * PI * strtof(optarg, NULL);
+      break;
+    case 'n':
+      num_steps = strtol(optarg, NULL, 10);
+      break;
+    case 't':
+      T_start = strtof(optarg, NULL);
+      break;
+    case '?':
+      if (optopt == 'f' || optopt == 'n' || optopt == 't')
+        fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+      else if (isprint (optopt))
+        fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+      else
+        fprintf (stderr,
+                 "Unknown option character `\\x%x'.\n",
+                 optopt);
+      return 1;
+    default:
+      abort ();
+    }
+    
   random_init();
   printf("Running ground state annealer\n");
   printf("N_x = %d, N_y = %d\n", N_x, N_y);
-  float T_start = 1;
-  int num_steps = 200000;
   for (int i = 0; i < num_steps; ++i) {
     float temp = T_start * ( 1 - (float) i / num_steps);
     printf("i = %10d, temp = %10g, f = %.13g\n", i, temp, free_energy());
-    run_step(temp, 1);
+    run_step(temp);
   }  
   save_to_file("output");
   return 0;
