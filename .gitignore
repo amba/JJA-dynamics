@@ -2,3 +2,4 @@
 output*.dat
 ground-state-annealer
 benchmark
+time-evolution
