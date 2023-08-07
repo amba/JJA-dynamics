@@ -1,6 +1,6 @@
 all: ground-state-annealer benchmark
 
-CFLAGS = -g -O2 -Wall
+CFLAGS = -g -Ofast -march=native -ffast-math -Wall
 LDFLAGS = -lm
 ground-state-annealer: ground-state-annealer.c
 	gcc $(CFLAGS) $< -o $@ $(LDFLAGS)

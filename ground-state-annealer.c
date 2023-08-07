@@ -13,7 +13,7 @@ static int N_y = 100;
 #define PI 3.141592
 
 static const SCALAR_TYPE EPS  = 0.4;
-static SCALAR_TYPE frustration = 0.25* 2 * PI;
+static SCALAR_TYPE frustration = 0;
 
 
 static SCALAR_TYPE *phases; // [N_x*N_y]; // phi(i,j) = phases(i + N_y * j)
@@ -31,6 +31,7 @@ static uint32_t random_state = 1;
 // static SCALAR_TYPE *currents_y[N_x*(N_y-1)];
 
 static inline uint32_t lcg_parkmiller() {
+  // faster than the glibc rand() function
   random_state = (uint64_t)random_state * 48271 % 0x7fffffff;
   return random_state;
 }
@@ -38,9 +39,7 @@ static inline uint32_t lcg_parkmiller() {
 
 static inline float random_phase(float temp) {
   // return random float in interval [-temp, temp]
-  uint32_t rand = lcg_parkmiller();
-  float x = temp * (4.0 * ((float) rand / UINT32_MAX) - 1);
-  return x;
+  return temp * (2.0f * (float) lcg_parkmiller() / 0x7fffffff - 1);
 }
 
 static void random_init() {
@@ -150,6 +149,7 @@ main (int argc, char **argv)
   // parse command line options
   int num_steps = 10;
   float T_start = 1;
+  float last_free_energy = 1e10;
   int c;
   while ((c = getopt(argc, argv, "f:n:t:N:")) != -1)
     switch (c) {
@@ -185,10 +185,23 @@ main (int argc, char **argv)
   printf("N_x = %d, N_y = %d\n", N_x, N_y);
   for (int i = 0; i < num_steps; ++i) {
     float temp = T_start * ( 1 - (float) i / num_steps);
-    if (i % 300 == 0)
+    if (i % 100 == 0)
       printf("i = %10d, temp = %10g, f = %.13g\n", i, temp, free_energy());
     run_step(temp);
-  }  
+  }
+  while (1) {
+    // zero temperature: converge solution
+    float f = free_energy();
+    float error = fabsf(f - last_free_energy) / f;
+    printf("converging solution: f = %10.5g, error = %10.5g\n", free_energy(), error);
+
+    if (error< 0.001)
+      break;
+    
+    last_free_energy = f;
+    run_step(0);
+  }
+  printf("final state: temp = 0, f = %.13g\n", free_energy());
   save_to_file("output");
   return 0;
 }
