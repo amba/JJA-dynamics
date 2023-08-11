@@ -98,7 +98,7 @@ static void save_to_file(char *basename) {
   // save phases to basename.dat
   //
   
-  sprintf(output_filename, "%s.%s", basename, ".dat");
+  sprintf(output_filename, "%s.dat", basename);
   FILE *file = fopen(output_filename, "w");
   fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\t\tphase\n");
   for (int j = 0; j < N_y; ++j) {
@@ -179,6 +179,8 @@ main (int argc, char **argv)
     default:
       abort ();
     }
+  char output_filename[100];
+  snprintf(output_filename, sizeof(output_filename), "output_Nx=%d_Ny=%d_nsteps=%d_Tstart=%g", N_x, N_y, num_steps, T_start);
   phases = (SCALAR_TYPE *) calloc(N_x * N_y, sizeof(SCALAR_TYPE));
   random_init();
   printf("Running ground state annealer\n");
@@ -202,6 +204,6 @@ main (int argc, char **argv)
     run_step(0);
   }
   printf("final state: temp = 0, f = %.13g\n", free_energy());
-  save_to_file("output");
+  save_to_file(output_filename);
   return 0;
 }

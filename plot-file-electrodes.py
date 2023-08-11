@@ -44,14 +44,14 @@ def save_3d_file(output_file, data, header):
 
 
 parser = argparse.ArgumentParser()
-
+parser.add_argument('basename', help="basename of output data files")
 parser.add_argument('-o', '--output', help="basename for output data file")
 parser.add_argument('-f', '--force', action="store_true", help="overwrite existing files")
 
 args = parser.parse_args()
-
-data_x, header = open_3d_file('output_Ix.dat')
-data_y, header = open_3d_file('output_Iy.dat')
+basename = args.basename
+data_x, header = open_3d_file(basename + '_Ix.dat')
+data_y, header = open_3d_file(basename + '_Iy.dat')
 I_x = np.swapaxes(data_x, 0, 1)
 I_y = np.swapaxes(data_y, 0, 1)
 
