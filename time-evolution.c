@@ -269,18 +269,17 @@ main (int argc, char **argv)
       run_step(temp, I_bias);
     }
     for (float I_bias = 0.0*N_y; I_bias < 1.1*N_y; I_bias += 0.01*N_y) {
-      int n_current_steps = 1000;
       //    adjust system to new current
       printf("setting j_bias to %g\n", I_bias / N_y);
-      for (int i = 0; i < n_current_steps / 4; ++i) {
+      for (int i = 0; i < num_steps / 2; ++i) {
         run_step(0, I_bias);
       }
     
       float delta_phi_start =  phases[N_x*N_y+1] - phases[N_x*N_y];
       printf("delta_phi_start = %g\n", delta_phi_start);
-      for (int i = 0; i < n_current_steps ; ++i) {
+      for (int i = 0; i < num_steps ; ++i) {
         run_step(0, I_bias);
-        if ( i % (n_current_steps / 10) == 1) {
+        if ( i % (num_steps / 10) == 1) {
           float delta_phi = (phases[N_x*N_y+1] - phases[N_x*N_y]);
           double voltage = -((double) delta_phi- (double) delta_phi_start) / (double) i / (2*PI);
           printf("j_bias = %20g, V = %20g\n", I_bias/N_y, voltage);
@@ -288,7 +287,7 @@ main (int argc, char **argv)
       }
       float delta_phi_end = (phases[N_x*N_y+1] - phases[N_x*N_y]);
       printf("delta_phi = %g\n", delta_phi_end);
-      double voltage = -((double) delta_phi_end- (double) delta_phi_start) / (double) n_current_steps / (2*PI);
+      double voltage = -((double) delta_phi_end- (double) delta_phi_start) / (double) num_steps / (2*PI);
       printf("j_bias = %20g, V = %20g\n", I_bias/N_y, voltage);
       fprintf(file_IV, "%.10g\t\t%.10g\t\t%.10g\t\t%.10g\n", frustration, I_bias / N_y, voltage, delta_phi_end);
       fflush(file_IV);
