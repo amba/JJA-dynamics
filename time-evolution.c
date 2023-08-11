@@ -61,6 +61,16 @@ static void random_init() {
     phases[N_x*N_y+1] = 2*PI*random_phase(0.5);
 }
 
+static void normalize_phases() {
+  // normalize all phases to range [-pi,pi)
+    for (int i = 0; i < N_x; ++i) {
+      for (int j = 0; j < N_y; ++j) {
+        phases[i + N_y * j] = remainderf(phases[i + N_y * j], 2*PI);
+      }
+    }
+    phases[N_x*N_y] = remainderf(phases[N_x*N_y], 2*PI);
+    phases[N_x*N_y+1] = remainderf(phases[N_x*N_y+1], 2*PI);
+}
 
 static inline void run_step(float temp, float I_bias) {
   float phi_L = phases[N_x*N_y+1];
@@ -274,7 +284,6 @@ main (int argc, char **argv)
       for (int i = 0; i < num_steps / 2; ++i) {
         run_step(0, I_bias);
       }
-    
       float delta_phi_start =  phases[N_x*N_y+1] - phases[N_x*N_y];
       printf("delta_phi_start = %g\n", delta_phi_start);
       for (int i = 0; i < num_steps ; ++i) {
@@ -291,6 +300,8 @@ main (int argc, char **argv)
       printf("j_bias = %20g, V = %20g\n", I_bias/N_y, voltage);
       fprintf(file_IV, "%.10g\t\t%.10g\t\t%.10g\t\t%.10g\n", frustration, I_bias / N_y, voltage, delta_phi_end);
       fflush(file_IV);
+      if (voltage > 0.5)
+        break;
       
     }
     fprintf(file_IV, "\n");
