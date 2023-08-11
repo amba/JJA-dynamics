@@ -271,8 +271,9 @@ main (int argc, char **argv)
     printf("f = %g\n", frustration);
     printf("Running ground state annealer\n");
     random_init();
-    for (int i = 0; i < num_steps; ++i) {
-      float temp = T_start * ( 1 - (float) i / num_steps);
+    int num_steps_annealing = 5 * num_steps;
+    for (int i = 0; i < num_steps_annealing; ++i) {
+      float temp = T_start * ( 1 - (float) i / num_steps_annealing);
       float I_bias = 0;
       if (i % 100 == 0)
         printf("i = %10d, temp = %10g, f = %.13g\n", i, temp, free_energy());
