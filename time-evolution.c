@@ -255,12 +255,12 @@ main (int argc, char **argv)
   fprintf(file_IV, "#\t\tf\t\tj_bias\t\tV\t\tΔφ_end\n");
   
   phases = (float *) calloc(N_x * N_y + 2, sizeof(float));
-  random_init();
   printf("N_x = %d, N_y = %d\n", N_x, N_y);
   for (frustration = 0; frustration < 1.01; frustration += 0.01) {
     printf("--------------------------------\n");
     printf("f = %g\n", frustration);
     printf("Running ground state annealer\n");
+    random_init();
     for (int i = 0; i < num_steps; ++i) {
       float temp = T_start * ( 1 - (float) i / num_steps);
       float I_bias = 0;
