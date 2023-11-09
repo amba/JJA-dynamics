@@ -1,4 +1,4 @@
-all: ground-state-annealer time-evolution
+all: ground-state-annealer time-evolution long-range-model
 
 CFLAGS = -g -Ofast -march=native -ffast-math -Wall
 LDFLAGS = -lm
@@ -7,6 +7,10 @@ ground-state-annealer: ground-state-annealer.c
 
 time-evolution: time-evolution.c
 	gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
+
+long-range-model: long-range-model.c
+	gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
+
 
 clean:
 	rm -f *.o ground-state-annealer benchmark time-evolution
