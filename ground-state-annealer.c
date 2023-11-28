@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <sys/stat.h> // for mkdir
+#include <time.h>
 
 static int N_x = 100;
 static int N_y = 100;
@@ -91,7 +93,7 @@ static inline SCALAR_TYPE free_energy() {
 }
 
 static void save_to_file(char *basename) {
-  char output_filename[300];
+  char output_filename[400];
 
 
   //
@@ -179,8 +181,22 @@ main (int argc, char **argv)
     default:
       abort ();
     }
-  char output_filename[100];
-  snprintf(output_filename, sizeof(output_filename), "output_Nx=%d_Ny=%d_nsteps=%d_Tstart=%g", N_x, N_y, num_steps, T_start);
+  char output_dir[200];
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  snprintf(output_dir,
+           sizeof(output_dir),
+           "%d-%02d-%02d_%02d-%02d-%02d_annealing_f=%g_Nx=%d_Ny=%d_annealing-steps=%d",
+           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+	   frustration / (2*PI),
+           N_x,
+           N_y,
+           num_steps);
+  mkdir(output_dir, 0777);
+  printf("output dir: %s\n", output_dir);
+  
+  char output_filename[300];
+  snprintf(output_filename, sizeof(output_filename), "%s/output_Nx=%d_Ny=%d_nsteps=%d_Tstart=%g",output_dir, N_x, N_y, num_steps, T_start);
   phases = (SCALAR_TYPE *) calloc(N_x * N_y, sizeof(SCALAR_TYPE));
   random_init();
   printf("Running ground state annealer\n");

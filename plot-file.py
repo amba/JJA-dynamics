@@ -49,9 +49,11 @@ parser.add_argument('-o', '--output', help="basename for output data file")
 parser.add_argument('-f', '--force', action="store_true", help="overwrite existing files")
 
 args = parser.parse_args()
-
-data_x, header = open_3d_file('output_Ix.dat')
-data_y, header = open_3d_file('output_Iy.dat')
+output_ix = glob.glob('*_Ix.dat')
+output_iy = glob.glob('*_Iy.dat')
+print(output_ix, output_iy)
+data_x, header = open_3d_file(output_ix[0])
+data_y, header = open_3d_file(output_iy[0])
 I_x = np.swapaxes(data_x, 0, 1)
 I_y = np.swapaxes(data_y, 0, 1)
 
