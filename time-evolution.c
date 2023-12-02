@@ -7,8 +7,8 @@
 #include <sys/stat.h> // for mkdir
 #include <time.h>
 
-static int N_x = 100;
-static int N_y = 100;
+static int N_x = 200;
+static int N_y = 200;
 #define SINE sinf
 #define COS cosf
 #define PI 3.141592
@@ -18,7 +18,7 @@ static float frustration = 0;
 
 
 static float *phases;
-static float phi0_y = 0;
+static float phi0_y = 0.2*PI;
 // [N_x*N_y + 2]; // phi(i,j) = phases(i + N_y * j)
 // φ_L = phases[Nx*Ny] (left electrode)
 // φ_R = phases[Nx*Ny + 1] (right electrode)
@@ -73,8 +73,8 @@ static void normalize_phases() {
 }
 
 static inline void run_step(float temp, float I_bias) {
-  float phi_L = phases[N_x*N_y+1];
-  float phi_R = phases[N_x*N_y+2];
+  float phi_L = phases[N_x*N_y];
+  float phi_R = phases[N_x*N_y+1];
   for (int i = 0; i < N_x; ++i) {
     for (int j = 0; j < N_y; ++j) {
       float div_I_super = 0;
@@ -119,14 +119,14 @@ static inline void run_step(float temp, float I_bias) {
   }
   /* printf("IL = %.3g, IR = %.3g\n", IL, IR); */
   /* printf("φL = %.5g, φR = %.5g\n", phi_L / (2*PI), phi_R / (2*PI)); */
-  phases[N_x*N_y+1] += (I_bias - IL) / div_IL;
-  phases[N_x*N_y+2] += (I_bias - IR) / div_IR;
+  phases[N_x*N_y] += (I_bias - IL) / div_IL;
+  phases[N_x*N_y+1] += (I_bias - IR) / div_IR;
 }
 
 static inline float free_energy() {
   float f = 0;
-  float phi_L = phases[N_x*N_y+1];
-  float phi_R = phases[N_x*N_y+2];
+  float phi_L = phases[N_x*N_y];
+  float phi_R = phases[N_x*N_y+1];
   for (int i = 0; i < N_x; ++i) {
     for (int j = 0; j < N_y; ++j) {
       float phase = phases[i + N_y * j];
@@ -147,91 +147,91 @@ static inline float free_energy() {
   return f;
 }
 
-/* static void save_to_file(char *basename) { */
-/*   char output_filename[300]; */
+static void save_to_file(char *basename) {
+  char output_filename[300];
 
 
-/*   // */
-/*   // save phases to basename.dat */
-/*   // */
-/*   printf("saving data to %s*\n", basename); */
-/*   sprintf(output_filename, "%s.%s", basename, "dat"); */
-/*   FILE *file = fopen(output_filename, "w"); */
-/*   fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\t\tphase\n"); */
-/*   for (int j = 0; j < N_y; ++j) { */
-/*     for (int i = 0; i < N_x; ++i) { */
-/*       fprintf(file, "%d\t\t%d\t\t%.5g\n",i,j,phases[i+N_y*j]); */
-/*     } */
-/*     fprintf(file, "\n"); */
-/*   } */
-/*   fclose(file); */
+  //
+  // save phases to basename.dat
+  //
+  printf("saving data to %s\n", basename);
+  sprintf(output_filename, "%s.%s", basename, "dat");
+  FILE *file = fopen(output_filename, "w");
+  fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\t\tphase\n");
+  for (int j = 0; j < N_y; ++j) {
+    for (int i = 0; i < N_x; ++i) {
+      fprintf(file, "%d\t\t%d\t\t%.5g\n",i,j,phases[i+N_y*j]);
+    }
+    fprintf(file, "\n");
+  }
+  fclose(file);
   
-/*   // */
-/*   // save I_x to basename_Ix.dat */
-/*   // */
-/*   float phi_L = phases[N_x*N_y+1]; */
-/*   float phi_R = phases[N_x*N_y+2]; */
+  //
+  // save I_x to basename_Ix.dat
+  //
+  float phi_L = phases[N_x*N_y];
+  float phi_R = phases[N_x*N_y+1];
 
   
-/*   sprintf(output_filename, "%s_Ix.dat", basename); */
-/*   file = fopen(output_filename, "w"); */
-/*   fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\tI_x\n"); */
-/*   for (int j = 0; j < N_y; ++j) { */
-/*     float I_x = SINE(phases[N_y*j] - phi_L - frustration * j); */
-/*     fprintf(file, "%d\t\t%d\t\t%.5g\n",0,j,I_x); */
-/*     for (int i = 0; i < N_x-1; ++i) { */
-/*       I_x =  SINE(phases[i+1 + N_y*j] - phases[i+N_y*j] - frustration * j); */
-/*       fprintf(file, "%d\t\t%d\t\t%.5g\n",i+1,j,I_x); */
-/*     } */
-/*     I_x = SINE(phi_R - phases[N_y*j  +N_x-1] - frustration * j); */
-/*     fprintf(file, "%d\t\t%d\t\t%.5g\n",N_x+1,j,I_x); */
-/*     fprintf(file, "\n"); */
-/*   } */
-/*   fclose(file); */
+  sprintf(output_filename, "%s_Ix.dat", basename);
+  file = fopen(output_filename, "w");
+  fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\tI_x\n");
+  for (int j = 0; j < N_y; ++j) {
+    float I_x = SINE(phases[N_y*j] - phi_L - frustration * j);
+    fprintf(file, "%d\t\t%d\t\t%.5g\n",0,j,I_x);
+    for (int i = 0; i < N_x-1; ++i) {
+      I_x =  SINE(phases[i+1 + N_y*j] - phases[i+N_y*j] - frustration * j);
+      fprintf(file, "%d\t\t%d\t\t%.5g\n",i+1,j,I_x);
+    }
+    I_x = SINE(phi_R - phases[N_y*j  +N_x-1] - frustration * j);
+    fprintf(file, "%d\t\t%d\t\t%.5g\n",N_x+1,j,I_x);
+    fprintf(file, "\n");
+  }
+  fclose(file);
   
   
-/*   // */
-/*   // save I_y to basename_Ix.dat */
-/*   // */
-/*   sprintf(output_filename, "%s_Iy.dat", basename); */
-/*   file = fopen(output_filename, "w"); */
-/*   fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\tI_y\n"); */
-/*   for (int j = 0; j < N_y-1; ++j) { */
-/*     for (int i = 0; i < N_x; ++i) { */
-/*       float I_y =  SINE(phases[i + N_y*(j+1)] - phases[i + N_y*j] - phi0_y); */
-/*       fprintf(file, "%d\t\t%d\t\t%.5g\n",i,j,I_y); */
-/*     } */
-/*     fprintf(file, "\n"); */
-/*   } */
-/*   fclose(file); */
+  //
+  // save I_y to basename_Ix.dat
+  //
+  sprintf(output_filename, "%s_Iy.dat", basename);
+  file = fopen(output_filename, "w");
+  fprintf(file, "#\t\tcolumn(i)\t\trow(j)\t\t\tI_y\n");
+  for (int j = 0; j < N_y-1; ++j) {
+    for (int i = 0; i < N_x; ++i) {
+      float I_y =  SINE(phases[i + N_y*(j+1)] - phases[i + N_y*j] - phi0_y);
+      fprintf(file, "%d\t\t%d\t\t%.5g\n",i,j,I_y);
+    }
+    fprintf(file, "\n");
+  }
+  fclose(file);
   
-/* } */
+}
 
 int
 main (int argc, char **argv)
 {
   // parse command line options
-  int num_steps = 10000;
-  float T_start = 1;
+  int num_steps = 20000;
+  //  float T_start = 1;
   int c;
-  while ((c = getopt(argc, argv, "n:t:N:")) != -1)
+  while ((c = getopt(argc, argv, "f:n:t:N:")) != -1)
     switch (c) {
-    /* case 'f': */
-    /*   frustration = 2 * PI * strtof(optarg, NULL); */
-    /*   break; */
+    case 'f':
+      frustration = 2 * PI * strtof(optarg, NULL);
+      break;
     case 'n':
       num_steps = strtol(optarg, NULL, 10);
       break;
-    case 't':
-      T_start = strtof(optarg, NULL);
-      break;
+    /* case 't': */
+    /*   T_start = strtof(optarg, NULL); */
+    /*   break; */
     case 'N':
       N_x = strtol(optarg, NULL, 10);
       N_y = N_x;
       break;
-    /* case 'p': */
-    /*   phi0_y = PI * strtof(optarg, NULL); */
-    /*   break; */
+      /* case 'p': */
+      /*   phi0_y = PI * strtof(optarg, NULL); */
+      /*   break; */
     case '?':
       if (optopt == 'f' || optopt == 'n' || optopt == 't')
         fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -245,10 +245,10 @@ main (int argc, char **argv)
     default:
       abort ();
     }
-  char output_dir[200];
-  char output_file_voltage[300];
-  FILE *file_IV;
-    /* create output directory */
+  char output_dir[100];
+  char output_file[200];
+  //  FILE *file_IV;
+  /* create output directory */
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
   snprintf(output_dir,
@@ -260,52 +260,24 @@ main (int argc, char **argv)
            num_steps);
   mkdir(output_dir, 0777);
   printf("output dir: %s\n", output_dir);
-  snprintf(output_file_voltage, sizeof(output_file_voltage), "%s/IV.dat", output_dir);
-  file_IV = fopen(output_file_voltage, "w");
-  fprintf(file_IV, "#\t\tf\t\tj_bias\t\tV\t\tΔφ_end\n");
+  snprintf(output_file, sizeof(output_file), "%s/phases.dat", output_dir); 
+  /* file_IV = fopen(output_file_voltage, "w"); */
+  /* fprintf(file_IV, "#\t\tf\t\tj_bias\t\tV\t\tΔφ_end\n"); */
   
   phases = (float *) calloc(N_x * N_y + 2, sizeof(float));
+  float temp = 0;
+  float I_bias = 0.1 * N_y;
   printf("N_x = %d, N_y = %d\n", N_x, N_y);
-  for (frustration = 0; frustration < 1.01; frustration += 0.01) {
-    printf("--------------------------------\n");
-    printf("f = %g\n", frustration);
-    printf("Running ground state annealer\n");
-    random_init();
-    int num_steps_annealing = 5 * num_steps;
-    for (int i = 0; i < num_steps_annealing; ++i) {
-      float temp = T_start * ( 1 - (float) i / num_steps_annealing);
-      float I_bias = 0;
-      if (i % 100 == 0)
-        printf("i = %10d, temp = %10g, f = %.13g\n", i, temp, free_energy());
-      run_step(temp, I_bias);
+  random_init();
+  for (int i = 0; i < num_steps ; ++i) {
+    run_step(temp, I_bias);
+    if (i % 100 == 0) {
+      printf("i = %d, F = %g\n", i, free_energy());
+      printf("phi_L = %g\n", phases[N_x*N_y]);
+      printf("phi_R = %g\n", phases[N_x*N_y+1]);
     }
-    for (float I_bias = 0.0*N_y; I_bias < 1.1*N_y; I_bias += 0.01*N_y) {
-      //    adjust system to new current
-      printf("setting j_bias to %g\n", I_bias / N_y);
-      for (int i = 0; i < num_steps / 2; ++i) {
-        run_step(0, I_bias);
-      }
-      float delta_phi_start =  phases[N_x*N_y+1] - phases[N_x*N_y];
-      printf("delta_phi_start = %g\n", delta_phi_start);
-      for (int i = 0; i < num_steps ; ++i) {
-        run_step(0, I_bias);
-        if ( i % (num_steps / 10) == 1) {
-          float delta_phi = (phases[N_x*N_y+1] - phases[N_x*N_y]);
-          double voltage = -((double) delta_phi- (double) delta_phi_start) / (double) i / (2*PI);
-          printf("j_bias = %20g, V = %20g\n", I_bias/N_y, voltage);
-        }
-      }
-      float delta_phi_end = (phases[N_x*N_y+1] - phases[N_x*N_y]);
-      printf("delta_phi = %g\n", delta_phi_end);
-      double voltage = -((double) delta_phi_end- (double) delta_phi_start) / (double) num_steps / (2*PI);
-      printf("j_bias = %20g, V = %20g\n", I_bias/N_y, voltage);
-      fprintf(file_IV, "%.10g\t\t%.10g\t\t%.10g\t\t%.10g\n", frustration, I_bias / N_y, voltage, delta_phi_end);
-      fflush(file_IV);
-      if (voltage > 0.5)
-        break;
+    
       
-    }
-    fprintf(file_IV, "\n");
-    fflush(file_IV);
   }
+  save_to_file(output_file);
 }
