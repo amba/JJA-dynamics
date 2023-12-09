@@ -2,15 +2,17 @@
 
 from multiprocessing import Pool, cpu_count
 import subprocess
+import numpy as np
 
 def run(params):
     subprocess.run(["./ground-state-annealer", *params]) 
     return 0
 
 N = 200
-n = 10000000
+n = 20000000
 
-f_vals = (1/3 + (1/N)**2 *4, 1/3 + (1/N)**2 *8, 1/3 + (1/N)**2 * 16, 1/3 + (1/N)**2 * 32, 1/3 + (1/N)**2 * 64, 1/3 + (1/N)**2 * 128)
+f_vals = np.arange(0.33, 0.43, 0.01)
+print("f_vals = ", f_vals)
 
 runs = []
 for f in f_vals:
