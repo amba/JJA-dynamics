@@ -9,7 +9,7 @@ import os.path
 import sys
 import matplotlib.pyplot as plt
 import scipy.signal
-
+import scipy.ndimage
 
 if np.__version__ < '1.14.1':
     sys.exit("numpy version " + np.__version__ + " is too old")
@@ -81,6 +81,13 @@ def plot_flux():
     m = np.flip(m, axis=1)
     m = np.swapaxes(m, 0, 1)
 
+    plt.imshow(m, aspect='equal', cmap='gray')
+    plt.colorbar(format="%.1f", label='flux')
+    plt.show()
+    plt.clf()
+    # low pass filter
+    m = scipy.ndimage.gaussian_filter(m, 1)
+    m = m[1:-1,1:-1]
     plt.imshow(m, aspect='equal', cmap='gray')
     plt.colorbar(format="%.1f", label='flux')
 
