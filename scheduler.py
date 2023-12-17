@@ -11,7 +11,7 @@ def run(params):
 N = 200
 n = 20000000
 
-f_vals = np.arange(0.33, 0.43, 0.01)
+f_vals = (1/8, 1/7, 1/6, 1/4, 3/8)
 print("f_vals = ", f_vals)
 
 runs = []
