@@ -64,7 +64,11 @@ print("shape I_x = ", I_x.shape)
 print("shape I_y = ", I_y.shape)
 # first index: i (x/col)
 # second index: j (y/row)
-
+F = np.sum(1 - np.sqrt(1 - I_x**2)) + np.sum(1 - np.sqrt(1 - I_y**2))
+print("F = ", F)
+F_per_junction = F / (I_x.size + I_y.size) 
+print("F / per junction = ", F_per_junction)
+print("F / per junction / π = ", F_per_junction/ np.pi)
 
 Nx = I_x.shape[0] + 1
 Ny = I_x.shape[1] 
