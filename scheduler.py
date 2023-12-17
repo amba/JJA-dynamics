@@ -8,15 +8,18 @@ def run(params):
     subprocess.run(["./ground-state-annealer", *params]) 
     return 0
 
-N = 200
+N = 100
 n = 20000000
 
-f_vals = (1/8, 1/7, 1/6, 1/4, 3/8)
+f_vals = (7/20,)
+T_start = 2
+n_vals = (100000, 500000, 1000000, 5000000, 10000000, 50000000, 100000000) 
 print("f_vals = ", f_vals)
 
 runs = []
 for f in f_vals:
-    runs.append(['-N', str(N), '-f', str(f), '-n', str(n)])
+    for n in n_vals:
+        runs.append(['-N', str(N), '-f', str(f), '-n', str(n), '-t', str(T_start)])
 
           
 
