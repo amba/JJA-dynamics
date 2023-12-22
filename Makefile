@@ -1,8 +1,11 @@
-all: ground-state-annealer time-evolution long-range-model
+all: ground-state-annealer time-evolution long-range-model ground-state-annealer-periodic
 
 CFLAGS = -g -Ofast -march=native -ffast-math -Wall
 LDFLAGS = -lm
 ground-state-annealer: ground-state-annealer.c
+	gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
+
+ground-state-annealer-periodic: ground-state-annealer-periodic.c
 	gcc $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 time-evolution: time-evolution.c

@@ -5,14 +5,13 @@ import subprocess
 import numpy as np
 
 def run(params):
-    subprocess.run(["./ground-state-annealer", *params]) 
+    subprocess.run(["./ground-state-annealer-periodic", *params]) 
     return 0
 
-N = 100
-n = 20000000
+N = 28
 
-f_vals = (7/20,)
-T_start = 2
+f_vals = (5.0/14.0,)
+T_start = 1
 n_vals = (100000, 500000, 1000000, 5000000, 10000000, 50000000, 100000000) 
 print("f_vals = ", f_vals)
 
